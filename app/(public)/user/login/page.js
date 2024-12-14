@@ -1,4 +1,27 @@
+"use client"
+import { useForm } from "react-hook-form";
+import { browserSessionPersistence, setPersistence,signInWithEmailAndPassword} from "firebase/auth";
+ import { auth } from "@/app/lib/firebase"
+
 function LoginForm() {
+
+  const {
+    register,
+    handleSubmit,
+    formState:{errors},
+  
+  } = useForm();
+
+  const onSubmit = data =>{
+    setPersistence(auth,browserSessionPersistence)
+    .then(()=>{
+    signInWithEmailAndPassword(auth,data.email,data.password).then(
+      (userCredencial) => {
+      console.log("User logged!");
+
+    })
+  })
+  }
   return (
     <section class="bg-white">
       <div class="lg:grid lg:min-h-screen lg:grid-cols-12">
@@ -36,7 +59,7 @@ function LoginForm() {
               nam dolorum aliquam, quibusdam aperiam voluptatum.
             </p>
 
-            <form action="#" class="mt-8 grid grid-cols-6 gap-6">
+            <form onSubmit={handleSubmit(onSubmit)} class="mt-8 grid grid-cols-6 gap-6">
    
               <div class="col-span-6">
                 <label
@@ -48,11 +71,23 @@ function LoginForm() {
                 </label>
 
                 <input
+                {...register("email",{
+                  required: {
+                    value:true,
+                    message: "musisz podac adres email!"
+                  },
+                  pattern:{
+                    value:/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+                    message: "Ades email ma niepoprawny format",
+                  }
+
+                })}
                   type="email"
                   id="Email"
                   name="email"
                   class="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                 />
+                <p className="text-red-500">{errors.email?.message}</p>
               </div>
 
               <div class="col-span-6 sm:col-span-3">
@@ -65,11 +100,18 @@ function LoginForm() {
                 </label>
 
                 <input
+                {...register("password",{
+                  required:"musisz podac hasło",
+                  minLength:6
+                }
+                )}
                   type="password"
                   id="Password"
                   name="password"
                   class="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
                 />
+                   <p className="text-red-500">{errors.password?.message}</p>
+
               </div>
 
               <div class="col-span-6 sm:flex sm:items-center sm:gap-4">
