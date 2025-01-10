@@ -18,12 +18,17 @@ function SideBar({ children }) {
             className="drawer-overlay"
           ></label>
           <ul className="menu bg-base-200 text-base-content min-h-full w-60 p-4">
-            {/* Sidebar content here */}
             <li>
               <Link href="/user/login">Login</Link>
             </li>
             <li>
+              <Link href="/user/register">Register</Link>
+            </li>
+            <li>
              {user &&  <Link href="/user/profile">Profile</Link>}
+            </li>
+            <li>
+             {user &&  <Link href="/user/logout">Wyloguj</Link>}
             </li>
           </ul>
         </div>

@@ -1,71 +1,44 @@
 "use client";
 
-import { getAuth, sendEmailVerification } from "firebase/auth";
+import { useEffect } from "react";
+import { getAuth, signOut } from "firebase/auth";
 import { useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 
-export default function Verify() {
+export default function VerifyEmail() {
   const auth = getAuth();
   const router = useRouter();
+  const [email, setEmail] = useState("");
 
-  const [resendMessage, setResendMessage] = useState("");
-  const [error, setError] = useState("");
-
-  const handleResendVerification = () => {
+  useEffect(() => {
     if (auth.currentUser) {
-      sendEmailVerification(auth.currentUser)
+      setEmail(auth.currentUser.email);
+
+      signOut(auth)
         .then(() => {
-          setResendMessage("Verification email has been resent. Please check your inbox.");
-          setError(""); // Clear any previous errors
+          console.log("User signed out");
         })
-        .catch((err) => {
-          setError("Failed to resend the verification email. Please try again.");
-          console.error(err);
+        .catch((error) => {
+          console.error("Error signing out:", error);
         });
     } else {
-      setError("You are not logged in. Please log in to resend the verification email.");
+      redirect("/user/login");
     }
-  };
-
-  const handleGoToLogin = () => {
-    redirect("/user/login"); // Przekierowanie do strony logowania
-  };
+  }, [auth, router]);
 
   return (
-    <section className="bg-white min-h-screen flex items-center justify-center">
-      <div className="max-w-md mx-auto text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Verify Your Email</h1>
-        <p className="text-gray-600 mb-6">
-          A verification email has been sent to your inbox. Please verify your email address to continue.
+    <section className="min-h-screen flex items-center justify-center bg-white">
+      <div className="max-w-md text-center">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          Email Not Verified
+        </h1>
+        <p className="text-gray-700">
+          Please verify your email by clicking the link sent to your address:{" "}
+          <span className="font-medium">{email}</span>.
         </p>
-
-        {/* Alert błędu */}
-        {error && (
-          <div className="text-red-500 bg-red-100 p-4 rounded-md mb-4">
-            {error}
-          </div>
-        )}
-
-        {/* Komunikat o wysłaniu ponownie e-maila */}
-        {resendMessage && (
-          <div className="text-green-500 bg-green-100 p-4 rounded-md mb-4">
-            {resendMessage}
-          </div>
-        )}
-
-        <button
-          onClick={handleResendVerification}
-          className="inline-block w-full rounded-md border border-blue-600 bg-blue-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500 mb-4"
-        >
-          Resend Verification Email
-        </button>
-
-        <button
-          onClick={handleGoToLogin}
-          className="inline-block w-full rounded-md border border-gray-300 px-6 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring active:bg-gray-200"
-        >
-          Back to Login
-        </button>
+        <p className="text-gray-500 mt-4">
+          After verifying your email, please log in again to access your account.
+        </p>
       </div>
     </section>
   );
