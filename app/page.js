@@ -1,11 +1,16 @@
-import Image from "next/image";
+"use client";
 
+import UserAvatar from "@/components/UserAvatar";
+import { useAuth } from "@/app/lib/AuthContext";
 export default function Home() {
+  const { user } = useAuth(); 
   return (
     <>
     <h1>Home</h1>
-    <button className="bg-yellow-500 p-2 rounded-lg hover:bg-yellow-700">Click</button>
-    <button className="btn btn-primary">Daisyui</button>
+    {user ? (
+        <UserAvatar />
+      ) : (
+            <></>      )}
     </>
   );
 }
