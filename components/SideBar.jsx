@@ -28,7 +28,7 @@ function SideBar({ children }) {
              {user &&  <Link href="/user/profile">Profile</Link>}
             </li>
             <li>
-             {user &&  <Link href="/user/logout">Wyloguj</Link>}
+             {user &&  <Link href="/user/logout">Logout</Link>}
             </li>
           </ul>
         </div>

@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/app/lib/AuthContext";
 
-function UserAvatar({ size = "16" }) {
+function UserAvatar({ size = "60" }) {
   const { user } = useAuth(); 
 
   const photoURL = user?.photoURL || "https://via.placeholder.com/150";
