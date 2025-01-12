@@ -1,42 +1,74 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { getAuth, updateProfile } from "firebase/auth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { getAuth, updateProfile } from "firebase/auth";
 import { db } from "@/app/lib/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc,setDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 export default function ProfileForm() {
   const auth = getAuth();
   const user = auth.currentUser;
   const router = useRouter();
 
-  if (!user) {
-    return <p>Loading...</p>;
-  }
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState("");
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const {
+    register,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
-      displayName: user?.displayName || "",
-      email: user?.email || "",
-      photoURL: user?.photoURL || "",
+      email: user?.email,
+      displayName: user?.displayName,
+      photoURL: user?.photoURL,
       street: "",
       city: "",
       zipCode: "",
     },
   });
 
-  const [error, setError] = useState("");
+  useEffect(() => {
+    const fetchAddress = async () => {
+      if (!user) return;
+
+      try {
+        const snapshot = await getDoc(doc(db, "users", user.uid));
+        if (snapshot.exists()) {
+          const address = snapshot.data().address || {};
+          setValue("street", address.street || "");
+          setValue("city", address.city || "");
+          setValue("zipCode", address.zipCode || "");
+        }
+      } catch (e) {
+        console.error("Error fetching address:", e);
+        setError("Failed to load user address.");
+      } finally {
+        setLoading(false); // Wyłącz ładowanie niezależnie od wyniku
+      }
+    };
+
+    fetchAddress();
+  }, [user, setValue]);
 
   const onSubmit = async (data) => {
+    if (!user) {
+      setError("You need to be logged in to update your profile.");
+      return;
+    }
+
     try {
+      // Aktualizacja profilu użytkownika
       await updateProfile(user, {
         displayName: data.displayName,
         photoURL: data.photoURL,
       });
 
-      await setDoc(doc(db, "users", user?.uid), {
+      // Aktualizacja adresu w Firestore
+      await setDoc(doc(db, "users", user.uid), {
         address: {
           street: data.street,
           city: data.city,
@@ -44,14 +76,17 @@ export default function ProfileForm() {
         },
       });
 
-      console.log("Profile and address updated successfully");
       setError("");
-      router.push("/");
+      router.push("/"); // Przekierowanie na stronę główną
     } catch (e) {
-      console.error("Error updating profile or address:", e);
-      setError("Nie masz uprawnień do zapisywania danych.");
+      console.error("Error updating profile:", e);
+      setError("Failed to update profile.");
     }
   };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <section className="bg-white min-h-screen flex items-center justify-center">
@@ -107,7 +142,7 @@ export default function ProfileForm() {
             <p className="text-red-500">{errors.photoURL?.message}</p>
           </div>
 
-          {/* Street */}
+          {/* Address - Street */}
           <div>
             <label htmlFor="street" className="block text-sm font-medium text-gray-700">
               Street
@@ -121,7 +156,7 @@ export default function ProfileForm() {
             <p className="text-red-500">{errors.street?.message}</p>
           </div>
 
-          {/* City */}
+          {/* Address - City */}
           <div>
             <label htmlFor="city" className="block text-sm font-medium text-gray-700">
               City
@@ -135,7 +170,7 @@ export default function ProfileForm() {
             <p className="text-red-500">{errors.city?.message}</p>
           </div>
 
-          {/* ZIP Code */}
+          {/* Address - ZIP Code */}
           <div>
             <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
               ZIP Code
