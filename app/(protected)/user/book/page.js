@@ -19,6 +19,7 @@ export default function AddBook() {
   const onSubmit = async (data) => {
     if (!user) {
       setError("You need to be logged in to add a book.");
+      setLoading(false);
       return;
     }
 
@@ -29,7 +30,6 @@ export default function AddBook() {
         title: data.title,
         user: `/users/${user.uid}`, 
       });
-
       setSuccess("Book added successfully!");
       setError("");
       router.push("/"); 
