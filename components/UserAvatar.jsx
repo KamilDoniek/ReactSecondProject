@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/app/lib/AuthContext";
+import Image from "next/image";
 
 function UserAvatar({ size = "60" }) {
   const { user } = useAuth(); 
@@ -9,7 +10,7 @@ function UserAvatar({ size = "60" }) {
 
   return (
     <div className={`w-${size} h-${size} rounded-full overflow-hidden`}>
-      <img
+      <Image
         src={photoURL}
         alt="User Profile"
         className="w-full h-full object-cover"
