@@ -5,19 +5,22 @@ import { useAuth } from "@/app/lib/AuthContext";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { redirect, useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function RegisterForm() {
   const { user } = useAuth();
   const auth = getAuth();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
+
+
+  const [registerError, setRegisterError] = useState(""); 
+  const { register, handleSubmit, watch, formState: { errors } } = useForm();
   if (user) {
     return null; 
+    router.push("/");
   }
-
-  const [registerError, setRegisterError] = useState(""); // Stan błędów rejestracji
-  const { register, handleSubmit, watch, formState: { errors } } = useForm();
-
   const onSubmit = (data) => {
     if (data.password !== data.confirmPassword) {
       setRegisterError("Passwords do not match.");
@@ -32,7 +35,7 @@ export default function RegisterForm() {
           .then(() => {
             console.log("Email verification sent!");
             signOut(auth).then(() => {
-              redirect("/user/verify");
+              router.push("/user/verify");
             });
           });
       })
@@ -46,7 +49,7 @@ export default function RegisterForm() {
     <section className="bg-white">
       <div className="lg:grid lg:min-h-screen lg:grid-cols-12">
         <aside className="relative block h-16 lg:order-last lg:col-span-5 lg:h-full xl:col-span-6">
-          <img
+          <Image
             alt="Registration"
             src="https://images.unsplash.com/photo-1605106702734-205df224ecce?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
             className="absolute inset-0 h-full w-full object-cover"
@@ -121,12 +124,18 @@ export default function RegisterForm() {
               </div>
 
               <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
-                <button
-                  type="submit"
-                  className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
-                >
-                  Register
-                </button>
+              <button
+  type="submit"
+  className={`inline-block shrink-0 rounded-md border px-12 py-3 text-sm font-medium transition ${
+    isLoading
+      ? "border-gray-400 bg-gray-400 text-white cursor-not-allowed"
+      : "border-blue-600 bg-blue-600 text-white hover:bg-transparent hover:text-blue-600"
+  }`}
+  disabled={isLoading}
+          >
+               {isLoading ? "Registering..." : "Register"}
+              </button>
+
               </div>
             </form>
           </div>

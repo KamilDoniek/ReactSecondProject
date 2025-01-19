@@ -18,22 +18,23 @@ function SideBar({ children }) {
             className="drawer-overlay"
           ></label>
           <ul className="menu bg-base-200 text-base-content min-h-full w-60 p-4">
-
+          { !user && 
             <li>
-            { !user && <Link href="/user/login">Login</Link>}
-            </li>
+            <Link href="/user/login">Login</Link>
+            </li>}
+            { !user && 
             <li>
-             { !user && <Link href="/user/register">Register</Link>}
-            </li>
-            <li>
-             {user &&  <Link href="/user/profile">Profile</Link>}
-            </li>
-            <li>
-             {user &&  <Link href="/user/allBook">All book</Link>}
-            </li>
-            <li>
-             {user &&  <Link href="/user/logout">Logout</Link>}
-            </li>
+         <Link href="/user/register">Register</Link>
+            </li>}
+            {user && <li>
+              <Link href="/user/profile">Profile</Link>
+            </li>}
+            {user &&<li>
+               <Link href="/user/allBook">All book</Link>
+            </li>}
+            {user && <li>
+              <Link href="/user/logout">Logout</Link>
+            </li>}
           </ul>
         </div>
       </div>

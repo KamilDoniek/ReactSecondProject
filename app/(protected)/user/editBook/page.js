@@ -1,24 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { db } from "@/app/lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 
+// Wymuszenie dynamicznego renderowania
+export const dynamic = "force-dynamic";
+
 export default function EditBook({ book, onUpdate, onCancel }) {
-  const [isbn, setIsbn] = useState(book.isbn);
+  // Zabezpieczenie, gdy `book` jest `undefined`
+  const [isbn, setIsbn] = useState(book?.isbn || ""); // Jeśli `book` nie istnieje, użyj pustego ciągu
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // Aktualizowanie ISBN, gdy `book` się zmienia
+  useEffect(() => {
+    if (book?.isbn) {
+      setIsbn(book.isbn);
+    }
+  }, [book]);
+
   const handleSave = async () => {
+    if (!isbn.trim()) {
+      setError("ISBN cannot be empty.");
+      return;
+    }
+
     setSaving(true);
+    setError("");
+
     try {
-      // Aktualizacja książki w Firestore
       const bookRef = doc(db, "books", book.id);
       await updateDoc(bookRef, { isbn });
 
-      // Wywołanie funkcji aktualizacji w rodzicu
       onUpdate({ ...book, isbn });
-      setError("");
     } catch (e) {
       console.error("Error updating book:", e);
       setError("Failed to update the book. Please try again.");
@@ -26,6 +41,14 @@ export default function EditBook({ book, onUpdate, onCancel }) {
       setSaving(false);
     }
   };
+
+  if (!book) {
+    return (
+      <p className="text-red-500">
+        Error: Book data is not available. Please try again.
+      </p>
+    );
+  }
 
   return (
     <div className="p-6 bg-white border rounded-md shadow-sm">
