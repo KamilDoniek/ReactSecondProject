@@ -8,12 +8,10 @@ import { doc, updateDoc } from "firebase/firestore";
 export const dynamic = "force-dynamic";
 
 export default function EditBook({ book, onUpdate, onCancel }) {
-  // Zabezpieczenie, gdy `book` jest `undefined`
-  const [isbn, setIsbn] = useState(book?.isbn || ""); // Jeśli `book` nie istnieje, użyj pustego ciągu
+  const [isbn, setIsbn] = useState(book?.isbn || ""); 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Aktualizowanie ISBN, gdy `book` się zmienia
   useEffect(() => {
     if (book?.isbn) {
       setIsbn(book.isbn);
