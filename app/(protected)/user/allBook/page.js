@@ -2,18 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { db } from "@/app/lib/firebase";
-import { collection, getDocs, query, where, doc, updateDoc } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 
 export default function Books() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [editingBook, setEditingBook] = useState(null); 
-  const [newIsbn, setNewIsbn] = useState(""); 
+  const [editingBook, setEditingBook] = useState(null);
+  const [newIsbn, setNewIsbn] = useState("");
+  const [user, setUser] = useState(null);
   const auth = getAuth();
-  const user = auth.currentUser;
   const router = useRouter();
 
   const handleAddBookClick = () => {
@@ -21,18 +28,19 @@ export default function Books() {
   };
 
   useEffect(() => {
-    if (!user) {
-      setError("You need to be logged in to view your books.");
-      setLoading(false);
-      return;
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
+        setError("You need to be logged in to view your books.");
+        setLoading(false);
+        return;
+      }
 
-    const fetchBooks = async () => {
+      setUser(currentUser);
+
       try {
         const booksCollection = collection(db, "books");
-        const userPath = `/users/${user.uid}`;
+        const userPath = `/users/${currentUser.uid}`;
         const q = query(booksCollection, where("user", "==", userPath));
-     
         const booksSnapshot = await getDocs(q);
         const booksList = booksSnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -46,14 +54,14 @@ export default function Books() {
       } finally {
         setLoading(false);
       }
-    };
+    });
 
-    fetchBooks();
-  }, [user]);
+    return () => unsubscribe();
+  }, [auth]);
 
   const handleEditClick = (book) => {
     setEditingBook(book);
-    setNewIsbn(book.isbn); 
+    setNewIsbn(book.isbn);
   };
 
   const handleSaveClick = async () => {
@@ -69,7 +77,7 @@ export default function Books() {
         )
       );
 
-      setEditingBook(null); // Zakończ edycję
+      setEditingBook(null);
       setNewIsbn("");
     } catch (e) {
       console.error("Error updating book:", e);
@@ -111,7 +119,9 @@ export default function Books() {
                 <p className="text-gray-600 text-sm">
                   Added on:{" "}
                   {book.add_date
-                    ? new Date(book.add_date.seconds * 1000).toLocaleDateString()
+                    ? new Date(
+                        book.add_date.seconds * 1000
+                      ).toLocaleDateString()
                     : "Unknown"}
                 </p>
                 {editingBook?.id === book.id ? (
@@ -151,4 +161,3 @@ export default function Books() {
     </section>
   );
 }
-
