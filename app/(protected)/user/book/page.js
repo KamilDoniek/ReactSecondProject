@@ -1,38 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db } from "@/app/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 export default function AddBook() {
   const auth = getAuth();
-  const user = auth.currentUser;
   const router = useRouter();
 
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser) {
+        setError("You need to be logged in to add a book.");
+        setUser(null);
+      } else {
+        setError("");
+        setUser(currentUser);
+      }
+    });
+
+    return () => unsubscribe(); 
+  }, [auth]);
 
   const onSubmit = async (data) => {
     if (!user) {
       setError("You need to be logged in to add a book.");
-      setLoading(false);
       return;
     }
 
     try {
       await addDoc(collection(db, "books"), {
-        add_date: serverTimestamp(), 
+        add_date: serverTimestamp(),
         isbn: data.isbn,
         title: data.title,
-        user: `/users/${user.uid}`, 
+        user: `/users/${user.uid}`,
       });
       setSuccess("Book added successfully!");
       setError("");
-      router.push("/"); 
+      router.push("/");
     } catch (e) {
       console.error("Error adding book:", e);
       setError("An error occurred while adding the book.");

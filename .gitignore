@@ -31,7 +31,6 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-
 # vercel
 .vercel
 
@@ -45,3 +44,9 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+
+# firebase
+.firebase/
+.firebaserc
+firebase.json
